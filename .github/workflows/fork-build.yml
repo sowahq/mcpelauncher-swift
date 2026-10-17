@@ -1,0 +1,32 @@
+name: Fork build
+
+on:
+  push:
+    branches: [fork-build]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: macos-26
+    timeout-minutes: 20
+    env:
+      CODESIGN_IDENTITY: "-"
+      APP_VERSION: "0.1.0-fork.${{ github.run_number }}"
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Test
+        run: swift test
+
+      - name: Build DMG
+        run: Scripts/build-dmg.sh
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Minecraft-Bedrock-Launcher-${{ env.APP_VERSION }}
+          path: .build/dmg/*.dmg
+          if-no-files-found: error
